@@ -1,0 +1,2 @@
+## Why This Exists
+While working on a project, I needed to visualize a collection of stack traces. I explored existing solutions and came across Brendan Gregg's FlameGraph. However, FlameGraph is tailored for a multithreaded environment, whereas my use case involves a single-threaded environment where time needs to be represented on the x-axis. Thus, I decided to build this tool. Additionally, I wanted to experiment with WebAssembly (Wasm).
