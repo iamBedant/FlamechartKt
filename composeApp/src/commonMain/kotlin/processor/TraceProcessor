@@ -1,0 +1,176 @@
+package processor
+import Interval
+import java.util.*
+
+
+class TreeNode(
+    val functionName: String,
+    val firstCaptureTime: Long,
+    var lastCaptureTime: Long,
+    val paddingLeft: Long,
+    var paddingRight: Long,
+    var children: MutableList<TreeNode> = mutableListOf()
+)
+
+private fun constructTree(intervals: List<Interval>, captureTimes: TreeSet<Long>): TreeNode? {
+    var root = TreeNode("Root", 0L, 0L, 0L, 0L) // Dummy root node
+    for (interval in intervals) {
+        var currentNode = root
+        val functionCalls = interval.stack_trace.split("\n").reversed()
+        for (functionCall in functionCalls) {
+
+            val existingChild = currentNode.children.find { it.functionName == functionCall}
+
+            if (existingChild != null) {
+                existingChild.lastCaptureTime = interval.capture_time
+                existingChild.paddingRight =
+                    calculateRightPadding(interval.capture_time, captureTimes.higher(interval.capture_time))
+            }
+
+            val nodeToAdd = existingChild ?: TreeNode(
+                functionName = functionCall,
+                firstCaptureTime = interval.capture_time,
+                lastCaptureTime = interval.capture_time,
+                paddingLeft = calculateLeftPadding(interval.capture_time, captureTimes.lower(interval.capture_time)),
+                paddingRight = calculateRightPadding(interval.capture_time, captureTimes.higher(interval.capture_time))
+            )
+            if (existingChild == null) {
+                currentNode.children.add(nodeToAdd)
+            }
+            currentNode = nodeToAdd
+        }
+    }
+    val currentRoot = root
+
+    root = currentRoot.children.first()
+    currentRoot.children = mutableListOf()
+
+    return root
+}
+
+private fun calculateLeftPadding(captureTime: Long, previousCaptureTime: Long?): Long {
+    return if (previousCaptureTime == null) {
+        0L
+    } else {
+        captureTime - previousCaptureTime
+    }
+}
+
+private fun calculateRightPadding(captureTime: Long, nextCapturingTime: Long?): Long {
+    return if (nextCapturingTime == null) {
+        0L
+    } else {
+        nextCapturingTime - captureTime
+    }
+}
+
+
+data class FlameChartEntry(
+    val functionName: String,
+    val firstCaptured: Long,
+    val lastCaptured: Long,
+    val depth: Int,
+    val captureTime: Long, // Probably don't need it. Remove
+    val leftPadding: Long,
+    val rightPadding: Long
+)
+
+class FlameChart(val entries: MutableList<FlameChartEntry> = mutableListOf())
+
+private fun traverse(node: TreeNode?, depth: Int, flameChart: FlameChart) {
+    node ?: return
+
+    flameChart.entries.add(
+        FlameChartEntry(
+            node.functionName,
+            node.firstCaptureTime,
+            node.lastCaptureTime,
+            depth,
+            node.firstCaptureTime,
+            node.paddingLeft,
+            node.paddingRight,
+        )
+    )
+
+    for (child in node.children) {
+        traverse(child, depth + 1, flameChart)
+    }
+}
+
+private fun convertTreeToFlameChartEntry(root: TreeNode?): List<FlameChartEntry> {
+    val flameChart = FlameChart()
+    traverse(root, 0, flameChart)
+    return flameChart.entries.sortedBy { it.depth }
+}
+
+fun generateFlameChartDataFromIntervals(intervals: List<Interval>): List<FlameChartEntry> {
+    val captureTimes: TreeSet<Long> = TreeSet<Long>()
+
+    intervals.forEach {
+        captureTimes.add(it.capture_time)
+    }
+
+
+    val tree = constructTree(intervals.sortedBy { it.capture_time }, captureTimes)
+    val flameChart = convertTreeToFlameChartEntry(tree)
+    return flameChart
+}
+
+fun arrangeFlameChartEntryByDepth(entries: List<FlameChartEntry>): SortedMapCompleteData {
+    val firstCaptureTime = entries.sortedBy { it.firstCaptured }.first().firstCaptured.toFloat()
+    val lastCaptureTime = entries.sortedBy { it.lastCaptured }.last().lastCaptured.toFloat()
+    val functions = entries.map { it.convertToChartData() }.groupBy { it.depth }.toSortedMap()
+    val maxHeight = functions.size.toFloat()
+    val maxWidth = (functions.lastKey() - functions.firstKey()).toFloat()
+
+    return SortedMapCompleteData(functions, firstCaptureTime, lastCaptureTime, maxHeight, maxWidth)
+}
+
+data class SortedMapCompleteData(
+    val functions: SortedMap<Int, List<RectData>>,
+    val firstCaptureTime: Float,
+    val lastCaptureTime:Float,
+    val maxWidth: Float,
+    val maxHeight: Float,
+)
+
+data class RectData(
+    val depth: Int,
+    val functionName: String,
+    val startPoint: Float,
+    val width: Float,
+    val functionType: FunctionType
+)
+
+fun FlameChartEntry.convertToChartData(): RectData {
+    val startPoint = this.firstCaptured.toFloat() - (leftPadding.toFloat() / 2F)
+    val endPoint = this.lastCaptured.toFloat() + (rightPadding.toFloat() / 2F)
+    val width = endPoint - startPoint
+    return RectData(this.depth, this.functionName.takeLast(100), startPoint, width, this.functionName.returnFunctionType())
+}
+
+enum class FunctionType {
+    Gojek,
+    GojekLib,
+    TpLib,
+    Framework,
+    AndroidX,
+    Unknown
+}
+
+
+// Dummy use for now. Will have to refactor
+
+fun String.returnFunctionType(): FunctionType {
+    return if (this.contains("gojek.driver"))
+        FunctionType.Gojek
+    else if(this.contains("androidx."))
+        FunctionType.AndroidX
+    else if(this.contains("android.os"))
+        FunctionType.Framework
+    else if(this.contains("com.gojek"))
+        FunctionType.GojekLib
+    else
+        FunctionType.Unknown
+}
+

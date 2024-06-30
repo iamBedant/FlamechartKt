@@ -1,35 +1,61 @@
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Button
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
+import network.Interval
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-import flamechartkt.composeapp.generated.resources.Res
-import flamechartkt.composeapp.generated.resources.compose_multiplatform
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+        var response by remember { mutableStateOf((mapOf<String, List<Interval>>())) }
+
+        LaunchedEffect(true) {
+            val intervalLogs = mutableMapOf<String, List<Interval>>()
+
+            NetworkClient().getIntervals().data.intervals.forEach { interval ->
+                val hash = interval.anrHash
+                val anrList = mutableListOf<Interval>()
+
+                interval.anrSampleList.forEach { sample ->
+                    if (sample.threads.size > 0) {
+                        anrList.add(
+                            Interval(
+                                hash,
+                                interval.startTime,
+                                interval.endTime,
+                                sample.timestamp,
+                                sample.threads[0].name,
+                                sample.threads[0].lines
+                            )
+                        )
+                    }
+                }
+
+                intervalLogs[hash] = anrList
+
             }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+            response = intervalLogs
+        }
+        Column {
+            Text("This is the starting of this website")
+            LazyColumn() {
+                response.forEach { t ->
+                    item(t.key) {
+                        AnrInterval(t.value)
+                    }
+
                 }
             }
         }
     }
+}
+
+@Composable
+fun AnrInterval(
+    intervals: List<Interval>,
+) {
+    Text("Interval Hash ${intervals.first().interval_hash}")
 }

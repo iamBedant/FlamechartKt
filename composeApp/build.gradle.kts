@@ -9,8 +9,13 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinxSerialization)
 }
-
+repositories {
+    maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
+    mavenCentral()
+    google()
+}
 kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -63,9 +68,15 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            api(libs.ktorClientCore)
+            implementation(libs.ktorSerializationKotlinxJson)
+            implementation(libs.ktorClientContentNegotiation)
+            implementation(libs.ktorClientLogging)
+
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
+            implementation(libs.ktorClientJvm)
         }
     }
 }
