@@ -16,6 +16,7 @@ kotlin = "2.0.0"
 ktor = "3.0.0-beta-2-eap-928"
 #ktor = "2.3.7"
 serialization = "2.0.0"
+kotlinxResources = "0.9.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -33,7 +34,8 @@ ktorClientLogging = { module = "io.ktor:ktor-client-logging", version.ref = "kto
 ktorSerializationKotlinxJson = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktorClientEncoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
-ktorClientJvm = {module = "io.ktor:ktor-client-java", version.ref = "ktor" }
+ktorClientJvm = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
+kotlinxResources = { module = "com.goncalossilva:resources", version.ref = "kotlinxResources" }
 
 
 
@@ -43,4 +45,5 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization"}
+kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
+kotlinxResources = { id = "com.goncalossilva.resources", version.ref = "kotlinxResources" }

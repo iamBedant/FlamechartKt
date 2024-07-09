@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinxResources)
     alias(libs.plugins.kotlinxSerialization)
 }
 repositories {
@@ -79,6 +80,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.junit)
             implementation(kotlin("test-annotations-common"))
+            implementation(libs.kotlinxResources)
         }
 
         desktopMain.dependencies {
@@ -95,6 +97,9 @@ android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
     sourceSets["main"].resources.srcDirs("src/commonMain/resources")
+
+    sourceSets["test"].resources.srcDirs("src/commonTest/resources")
+    sourceSets["androidTest"].resources.srcDirs("src/commonTest/resources")
 
     defaultConfig {
         applicationId = "com.iambedant.flamechartkt"
