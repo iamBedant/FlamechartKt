@@ -74,6 +74,13 @@ kotlin {
             implementation(libs.ktorClientLogging)
 
         }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.junit)
+            implementation(kotlin("test-annotations-common"))
+        }
+
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.ktorClientJvm)
