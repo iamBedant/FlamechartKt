@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
-class ProcessorTest {
+class ParserTest {
 
     @Test
     fun canaryTest() {
