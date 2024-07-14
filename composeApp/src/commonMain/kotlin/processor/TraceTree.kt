@@ -13,16 +13,11 @@ data class TraceData(
 
 data class TraceNode(
     val functionName: String,
-    val startTime: Long = 0L,
-    val endTime: Long = 0L,
-    val captureTime: Long
+    val firstCaptureTime: Long = 0L,
+    val lastCaptureTime: Long = 0L,
 )
 
 data class TraceTree(
-    val data: TraceNode,
-    val children: MutableList<TraceNode>
+    var data: TraceNode,
+    val children: MutableList<TraceTree>
 )
-
-fun constructTreeFromStackTraces(traceInterval: TraceInterval): TraceTree {
-    TODO()
-}
