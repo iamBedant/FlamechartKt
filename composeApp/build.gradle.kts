@@ -73,7 +73,8 @@ kotlin {
             implementation(libs.ktorSerializationKotlinxJson)
             implementation(libs.ktorClientContentNegotiation)
             implementation(libs.ktorClientLogging)
-
+            implementation(libs.decompose)
+            implementation(libs.decomposeExtension)
         }
 
         commonTest.dependencies {
