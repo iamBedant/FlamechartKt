@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlinxResources)
+//    alias(libs.plugins.kotlinxResources)
     alias(libs.plugins.kotlinxSerialization)
 }
 repositories {
@@ -81,7 +81,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.junit)
             implementation(kotlin("test-annotations-common"))
-            implementation(libs.kotlinxResources)
+//            implementation(libs.kotlinxResources)
         }
 
         desktopMain.dependencies {
