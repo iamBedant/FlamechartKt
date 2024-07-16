@@ -1,5 +1,7 @@
 package processor
 
+import kotlinx.serialization.Serializable
+
 data class TraceInterval(
     val startTime: Long,
     val endTime: Long,
@@ -11,6 +13,7 @@ data class TraceData(
     val stackTrace: String
 )
 
+@Serializable
 data class TraceNode(
     val functionName: String,
     val firstCaptureTime: Long = 0L,

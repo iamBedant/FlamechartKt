@@ -1,61 +1,29 @@
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import network.Interval
+import com.arkivanov.decompose.extensions.compose.stack.Children
+import com.arkivanov.decompose.extensions.compose.stack.animation.fade
+import com.arkivanov.decompose.extensions.compose.stack.animation.plus
+import com.arkivanov.decompose.extensions.compose.stack.animation.scale
+import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import nav.FlameChartRoot
+import nav.FlameChartRootContent
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import ui.DetailScreen
+import ui.MainScreen
 
 @Composable
 @Preview
-fun App() {
+fun App(root: FlameChartRootContent) {
     MaterialTheme {
-        var response by remember { mutableStateOf((mapOf<String, List<Interval>>())) }
-
-        LaunchedEffect(true) {
-            val intervalLogs = mutableMapOf<String, List<Interval>>()
-
-            NetworkClient().getIntervals().data.intervals.forEach { interval ->
-                val hash = interval.anrHash
-                val anrList = mutableListOf<Interval>()
-
-                interval.anrSampleList.forEach { sample ->
-                    if (sample.threads.size > 0) {
-                        anrList.add(
-                            Interval(
-                                hash,
-                                interval.startTime,
-                                interval.endTime,
-                                sample.timestamp,
-                                sample.threads[0].name,
-                                sample.threads[0].lines
-                            )
-                        )
-                    }
-                }
-
-                intervalLogs[hash] = anrList
-
-            }
-            response = intervalLogs
-        }
-        Column {
-            Text("This is the starting of this website")
-            LazyColumn() {
-                response.forEach { t ->
-                    item(t.key) {
-                        AnrInterval(t.value)
-                    }
-
-                }
+        Children(
+            stack = root.childStack,
+            animation = stackAnimation(fade() + scale()),
+        ) {
+            when (val child = it.instance) {
+                is FlameChartRoot.Child.Detail -> DetailScreen(child.interval, child.goBack)
+                is FlameChartRoot.Child.Main -> MainScreen(child.navigateToDetails)
             }
         }
+
     }
-}
-
-@Composable
-fun AnrInterval(
-    intervals: List<Interval>,
-) {
-    Text("Interval Hash ${intervals.first().interval_hash}")
 }

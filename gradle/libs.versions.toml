@@ -17,7 +17,7 @@ ktor = "3.0.0-beta-2-eap-928"
 #ktor = "2.3.7"
 serialization = "2.0.0"
 kotlinxResources = "0.9.0"
-decompose = "3.1.0"
+decompose = "3.0.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
