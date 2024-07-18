@@ -8,7 +8,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import network.Interval
-import processor.TraceNode
+import processor.*
 
 @Composable
 fun MainScreen(navigatrToDetails: (HashMap<Int, List<TraceNode>>) -> Unit) {
@@ -48,7 +48,6 @@ fun MainScreen(navigatrToDetails: (HashMap<Int, List<TraceNode>>) -> Unit) {
                 item(t.key) {
                     AnrInterval(t.value, navigatrToDetails)
                 }
-
             }
         }
     }
@@ -61,7 +60,23 @@ fun AnrInterval(
 ) {
     Text("Interval Hash ${intervals.first().interval_hash}", modifier = Modifier.clickable {
         navigatrToDetails.invoke(
-            hashMapOf()
+            mapToTraceNode(intervals)
         )
     })
+}
+
+fun mapToTraceNode(intervals: List<Interval>): HashMap<Int, List<TraceNode>> {
+    val traceInterval = TraceInterval(
+        startTime = intervals[0].start_time,
+        endTime = intervals[0].end_time,
+        traceData = intervals.map {
+            TraceData(
+                captureTime = it.capture_time,
+                stackTrace = it.stack_trace
+            )
+        }
+    )
+    val traceTree = constructTreeFromStackTraces(traceInterval)
+    val uiMap = traverseLevelsForTraceTree(traceTree)
+    return uiMap
 }
