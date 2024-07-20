@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.*
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import processor.FlameChartData
 import processor.TraceNode
 
 
@@ -29,19 +30,20 @@ class FlameChartRootContent(
             is Configuration.Detail -> FlameChartRoot.Child.Detail(configuration.interval, ::goBack)
         }
 
-    private fun navigateToDetails(stackMap: HashMap<Int, List<TraceNode>>){
+    private fun navigateToDetails(stackMap: FlameChartData) {
         navigation.push(Configuration.Detail(stackMap, ::goBack))
     }
+
     private fun goBack() {
         navigation.pop()
     }
-    
+
     @Serializable
     private sealed class Configuration {
         @Serializable
-        data class Main(val navigateToDetails: (stackMap: HashMap<Int, List<TraceNode>>) -> Unit) : Configuration()
+        data class Main(val navigateToDetails: (stackMap: FlameChartData) -> Unit) : Configuration()
 
         @Serializable
-        data class Detail(val interval: HashMap<Int, List<TraceNode>>, val goBack: () -> Unit) : Configuration()
+        data class Detail(val interval: FlameChartData, val goBack: () -> Unit) : Configuration()
     }
 }

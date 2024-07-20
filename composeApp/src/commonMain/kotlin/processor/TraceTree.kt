@@ -24,3 +24,10 @@ data class TraceTree(
     var data: TraceNode,
     val children: MutableList<TraceTree>
 )
+
+@Serializable
+data class FlameChartData(
+    val flameMap: HashMap<Int, List<TraceNode>>,
+    val firstCaptureTime: Long,
+    val lastCaptureTime: Long,
+)

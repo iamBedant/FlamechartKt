@@ -11,7 +11,7 @@ import network.Interval
 import processor.*
 
 @Composable
-fun MainScreen(navigatrToDetails: (HashMap<Int, List<TraceNode>>) -> Unit) {
+fun MainScreen(navigatrToDetails: (FlameChartData) -> Unit) {
     var response by remember { mutableStateOf((mapOf<String, List<Interval>>())) }
 
     LaunchedEffect(true) {
@@ -56,22 +56,27 @@ fun MainScreen(navigatrToDetails: (HashMap<Int, List<TraceNode>>) -> Unit) {
 @Composable
 fun AnrInterval(
     intervals: List<Interval>,
-    navigatrToDetails: (HashMap<Int, List<TraceNode>>) -> Unit,
+    navigatrToDetails: (FlameChartData) -> Unit,
 ) {
-    Text("Interval Hash ${intervals.first().interval_hash}", modifier = Modifier.clickable {
+    Text("Interval Hash ${intervals.first().interval_hash}  == ${intervals.size}", modifier = Modifier.clickable {
         navigatrToDetails.invoke(
-            mapToTraceNode(intervals)
+            FlameChartData(
+                flameMap = mapToTraceNode(intervals),
+                firstCaptureTime = intervals.sortedBy { it.capture_time }.first().capture_time,
+                lastCaptureTime = intervals.sortedBy { it.capture_time }.last().capture_time
+            )
         )
     })
 }
 
 fun mapToTraceNode(intervals: List<Interval>): HashMap<Int, List<TraceNode>> {
+    val firstCaptureTime = intervals.sortedBy { it.capture_time }.first().capture_time
     val traceInterval = TraceInterval(
-        startTime = intervals[0].start_time,
-        endTime = intervals[0].end_time,
+        startTime = intervals[0].start_time - firstCaptureTime,
+        endTime = intervals[0].end_time - firstCaptureTime,
         traceData = intervals.map {
             TraceData(
-                captureTime = it.capture_time,
+                captureTime = it.capture_time - firstCaptureTime,
                 stackTrace = it.stack_trace
             )
         }

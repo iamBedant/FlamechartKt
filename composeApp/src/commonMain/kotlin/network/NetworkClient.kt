@@ -29,7 +29,7 @@ class NetworkClient(
 ) {
     suspend fun getIntervals(): IntervalResponse {
         return handleErrors {
-            httpClient.get("http://localhost:3000/data") {
+            httpClient.get("http://192.168.1.122:3000/data") {
                 contentType(ContentType.Application.Json)
             }
         }
