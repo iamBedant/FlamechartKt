@@ -18,6 +18,8 @@ data class TraceNode(
     val functionName: String,
     val firstCaptureTime: Long = 0L,
     val lastCaptureTime: Long = 0L,
+    val firstDrawBoundary: Long = 0L,
+    val lastDrawBoundary: Long = 0L,
 )
 
 data class TraceTree(

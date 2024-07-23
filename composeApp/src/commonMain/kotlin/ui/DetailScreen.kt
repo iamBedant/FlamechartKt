@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.jetbrains.skia.Font
@@ -90,10 +89,10 @@ fun DrawFunctionRow(
         functions.forEach {
             drawFunctionCall(
                 modifier = modifier,
-                startX = it.firstCaptureTime * scaleWidthFactor,
+                startX = it.firstDrawBoundary * scaleWidthFactor,
                 startY = (level + 1) * scaleHeightFactor,
                 name = it.functionName,
-                width = (it.lastCaptureTime - it.firstCaptureTime) * scaleWidthFactor,
+                width = (it.lastDrawBoundary - it.firstDrawBoundary) * scaleWidthFactor,
                 heightFactor = scaleHeightFactor,
             )
         }
@@ -109,9 +108,6 @@ fun drawFunctionCall(
     width: Float,
     heightFactor: Float
 ) {
-    println("==============")
-    println("$startX")
-    println("==============")
     Canvas(modifier) {
         drawRect(
             topLeft = Offset(x = startX, y = startY),
