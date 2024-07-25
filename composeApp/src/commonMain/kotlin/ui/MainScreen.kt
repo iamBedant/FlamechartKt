@@ -7,7 +7,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import kotlinx.serialization.json.Json
 import network.Interval
+import network.IntervalResponse
 import processor.*
 
 @Composable
@@ -17,10 +19,10 @@ fun MainScreen(navigatrToDetails: (FlameChartData) -> Unit) {
     LaunchedEffect(true) {
         val intervalLogs = mutableMapOf<String, List<Interval>>()
 
-        NetworkClient().getIntervals().data.intervals.forEach { interval ->
+        val responseSt = Json.decodeFromString<IntervalResponse>(sampleTrace)
+        responseSt.data.intervals.forEach { interval ->
             val hash = interval.anrHash
             val anrList = mutableListOf<Interval>()
-
             interval.anrSampleList.forEach { sample ->
                 if (sample.threads.size > 0) {
                     anrList.add(
@@ -37,8 +39,31 @@ fun MainScreen(navigatrToDetails: (FlameChartData) -> Unit) {
             }
 
             intervalLogs[hash] = anrList
-
         }
+
+
+//        NetworkClient().getIntervals().data.intervals.forEach { interval ->
+//            val hash = interval.anrHash
+//            val anrList = mutableListOf<Interval>()
+//
+//            interval.anrSampleList.forEach { sample ->
+//                if (sample.threads.size > 0) {
+//                    anrList.add(
+//                        Interval(
+//                            hash,
+//                            interval.startTime,
+//                            interval.endTime,
+//                            sample.timestamp,
+//                            sample.threads[0].name,
+//                            sample.threads[0].lines
+//                        )
+//                    )
+//                }
+//            }
+//
+//            intervalLogs[hash] = anrList
+//
+//        }
         response = intervalLogs
     }
     Column {

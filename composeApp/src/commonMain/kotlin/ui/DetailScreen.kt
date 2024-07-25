@@ -117,13 +117,13 @@ fun drawFunctionCall(
         )
         drawRect(
             topLeft = Offset(x = startX, y = startY),
-            color = Color.Blue,
+            color = Color(0xE4FF0000),
             size = Size(width, heightFactor)
         )
         drawIntoCanvas {
             it.nativeCanvas.apply {
                 drawTextLine(
-                    line = TextLine.Companion.make(name.substring(0,30), Font(
+                    line = TextLine.Companion.make(name, Font(
                         typeface = null,
                         size = 20f,
                     )
