@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.Paint
+import org.jetbrains.skia.Rect
 import org.jetbrains.skia.TextLine
 import processor.FlameChartData
 import processor.TraceNode
@@ -133,16 +134,24 @@ fun drawFunctionCall(
 
 fun DrawScope.drawFunctionName(name: String, startX: Float, width: Float, startY: Float, heightFactor: Float) {
     drawIntoCanvas {
+        val textLine = TextLine.make(
+            name,
+            Font(
+                typeface = null,
+                size = 20f,
+            )
+        )
+        val textLineWidthHalf = textLine.width / 2F
+        val textLineHeightHalf = textLine.height / 2F
+
+        val textStartX = (startX + width / 2F) - textLineWidthHalf
+        val textStartY = (startY + heightFactor / 2F) + textLineHeightHalf
         it.nativeCanvas.apply {
+            clipRect(Rect(startX + 10, startY, startX + width - 10, startY + heightFactor))
             drawTextLine(
-                line = TextLine.Companion.make(
-                    name, Font(
-                        typeface = null,
-                        size = 20f,
-                    )
-                ),
-                x = startX + 20F,
-                y = startY + 25F,
+                line = textLine,
+                x = textStartX,
+                y = textStartY,
                 paint = Paint()
             )
         }
