@@ -11,6 +11,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -58,12 +59,18 @@ fun DetailScreen(component: FlameChartData, goBack: () -> Unit) {
 fun FlameChart(component: FlameChartData, scaleHeightFactor: Float, scaleWidthFactor: Float) {
     val canvasWidth = ((component.lastCaptureTime - component.firstCaptureTime) * scaleWidthFactor).toDp
     val canvasHeight = (component.flameMap.size * scaleHeightFactor).toDp
-
+    println("canvasWidth: $canvasWidth, canvasHeight $canvasHeight")
+    println("lastCaptureTime: ${component.lastCaptureTime}, firstCaptureTime ${component.firstCaptureTime}")
     Column(
         Modifier
             .padding(16.dp)
             .drawBehind {
-
+                drawAxis(
+                    firstCaptureTime = component.firstCaptureTime,
+                    lastCaptureTime = component.lastCaptureTime,
+                    scaleWidthFactor = scaleWidthFactor,
+                    height = (component.flameMap.size * scaleHeightFactor) + 40F
+                )
             }
             .height(canvasHeight)
             .width(canvasWidth)
@@ -75,6 +82,59 @@ fun FlameChart(component: FlameChartData, scaleHeightFactor: Float, scaleWidthFa
                 scaleHeightFactor = scaleHeightFactor,
                 scaleWidthFactor = scaleWidthFactor
             )
+        }
+    }
+}
+
+internal fun DrawScope.drawAxis(
+    firstCaptureTime: Long,
+    lastCaptureTime: Long,
+    scaleWidthFactor: Float,
+    height: Float
+) {
+    val totalWidth = lastCaptureTime - firstCaptureTime
+    val totalScale = (totalWidth / 100) + 2
+
+    println("firstCaptureTime $firstCaptureTime, lastCaptureTime $lastCaptureTime, scaleWidthFactor $scaleWidthFactor  totalScale: $totalScale  totalWidth $totalWidth")
+
+    val textPaint = Paint().apply {
+        isAntiAlias = true
+    }
+    val pathEffect = PathEffect.dashPathEffect(floatArrayOf(40f, 20f), 0f)
+
+
+    repeat(totalScale.toInt()) { i ->
+        drawIntoCanvas {
+            val text = "${i * 100} ms"
+            val textLine = TextLine.make(
+                text, Font(
+                    typeface = null,
+                    size = 20f,
+                )
+            )
+            val textLineWidthHalf = textLine.width / 2F
+            val textStartX = ((i * 100) * scaleWidthFactor) - textLineWidthHalf
+
+            it.nativeCanvas.apply {
+
+                drawTextLine(
+                    textLine,
+                    textStartX,
+                    0F,
+                    textPaint
+                )
+
+                if (i != 0) {
+                    drawLine(
+                        start = Offset(x = textStartX, y = 0f),
+                        end = Offset(x = textStartX, y = height),
+                        color = Color.DarkGray,
+                        pathEffect = pathEffect,
+                        alpha = 0.5F,
+                        strokeWidth = 1F
+                    )
+                }
+            }
         }
     }
 }
