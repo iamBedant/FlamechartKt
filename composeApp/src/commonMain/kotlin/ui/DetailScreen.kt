@@ -11,6 +11,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -120,22 +121,33 @@ fun drawFunctionCall(
             color = Color(0xE4FF0000),
             size = Size(width, heightFactor)
         )
-        drawIntoCanvas {
-            it.nativeCanvas.apply {
-                drawTextLine(
-                    line = TextLine.Companion.make(name, Font(
+        drawFunctionName(
+            name = name,
+            startX = startX,
+            width = width,
+            startY = startY,
+            heightFactor = heightFactor
+        )
+    }
+}
+
+fun DrawScope.drawFunctionName(name: String, startX: Float, width: Float, startY: Float, heightFactor: Float) {
+    drawIntoCanvas {
+        it.nativeCanvas.apply {
+            drawTextLine(
+                line = TextLine.Companion.make(
+                    name, Font(
                         typeface = null,
                         size = 20f,
                     )
-                    ),
-                    x = startX + 20F,
-                    y = startY +25F,
-                    paint = Paint()
-                )
-            }
+                ),
+                x = startX + 20F,
+                y = startY + 25F,
+                paint = Paint()
+            )
         }
     }
 }
 
 inline val Float.toDp: Dp
-@Composable get() = with(LocalDensity.current) { this@toDp.toDp() }
+    @Composable get() = with(LocalDensity.current) { this@toDp.toDp() }
