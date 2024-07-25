@@ -85,11 +85,7 @@ fun AnrInterval(
 ) {
     Text("Interval Hash ${intervals.first().interval_hash}  == ${intervals.size}", modifier = Modifier.clickable {
         navigatrToDetails.invoke(
-            FlameChartData(
-                flameMap = mapToTraceNode(intervals),
-                firstCaptureTime = intervals.sortedBy { it.capture_time }.first().capture_time,
-                lastCaptureTime = intervals.sortedBy { it.capture_time }.last().capture_time
-            )
+            mapToFlameChartData(intervals)
         )
     })
 }

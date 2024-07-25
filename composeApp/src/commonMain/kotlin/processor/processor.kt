@@ -26,8 +26,6 @@ fun traverseLevelsForTraceTree(tree: TraceTree): HashMap<Int, List<TraceNode>> {
 fun mapToTraceNode(intervals: List<Interval>): HashMap<Int, List<TraceNode>> {
     val sortedIntervalList = intervals.sortedBy { it.capture_time }
     val firstCaptureTime = sortedIntervalList.first().capture_time
-    val lastCaptureTime = sortedIntervalList.last().capture_time
-
     val traceInterval = TraceInterval(
         startTime = intervals[0].start_time - firstCaptureTime,
         endTime = intervals[0].end_time - firstCaptureTime,
@@ -71,7 +69,6 @@ fun addPaddingToList(value: List<TraceNode>, captureTimeSet: TreeSet<Long>): Lis
         )
         traceNodeList.add(traceNode)
     }
-
     return traceNodeList
 }
 
@@ -93,3 +90,9 @@ fun calculateLeftPadding(traceNode: TraceNode, captureTimeSet: TreeSet<Long>): L
     val leftPadding = leftGap / 2
     return traceNode.firstCaptureTime - leftPadding
 }
+
+fun mapToFlameChartData(intervals: List<Interval>) = FlameChartData(
+    flameMap = mapToTraceNode(intervals),
+    firstCaptureTime = intervals.sortedBy { it.capture_time }.first().capture_time,
+    lastCaptureTime = intervals.sortedBy { it.capture_time }.last().capture_time
+)
