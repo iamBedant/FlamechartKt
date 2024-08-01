@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -28,63 +29,71 @@ import processor.TraceNode
 
 @Composable
 fun DetailScreen(component: FlameChartData, goBack: () -> Unit) {
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().padding(24.dp)) {
         Text("GoBack", modifier = Modifier.clickable { goBack.invoke() })
         Spacer(Modifier.height(60.dp))
 
         val stateVertical = rememberScrollState(0)
         val stateHorizontal = rememberScrollState(0)
 
-        val scaleWidthFactor = remember { mutableFloatStateOf(1F) }
+        val scaleWidthFactor = remember { mutableFloatStateOf(10F) }
         val scaleHeightFactor = remember { mutableFloatStateOf(50F) }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(stateVertical)
-                .padding(end = 12.dp, bottom = 12.dp)
-                .horizontalScroll(stateHorizontal)
-        ) {
 
-            FlameChart(
-                component,
-                scaleHeightFactor = scaleHeightFactor.value,
-                scaleWidthFactor = scaleWidthFactor.value
-            )
-        }
-    }
-}
+        Column(Modifier.fillMaxHeight().horizontalScroll(stateHorizontal)) {
+            Box(
+                Modifier.height(50.dp)
+                    .drawBehind {
+                        val totalWidth = component.lastCaptureTime - component.firstCaptureTime
+                        val totalScale = (totalWidth/2) +2
+                        val textPaint = Paint().apply {
+                            isAntiAlias = true
+                        }
+                        repeat(totalScale.toInt()){ i ->
+                            drawIntoCanvas {
+                                val text = "${i * 100} ms"
+                                val textLine = TextLine.make(
+                                    text, Font(
+                                        typeface = null,
+                                        size = 20f,
+                                    )
+                                )
+                                val textLineWidthHalf = textLine.width / 2F
+                                val textStartX = ((i * 100) * scaleWidthFactor.value) - textLineWidthHalf
+                                it.nativeCanvas.apply {
+                                    drawTextLine(
+                                        textLine,
+                                        textStartX,
+                                        0F,
+                                        textPaint
+                                    )
+                                }
+                            }
+                        }
+                    }
+            ) {
 
-@Composable
-fun FlameChart(component: FlameChartData, scaleHeightFactor: Float, scaleWidthFactor: Float) {
-    val canvasWidth = ((component.lastCaptureTime - component.firstCaptureTime) * scaleWidthFactor).toDp
-    val canvasHeight = (component.flameMap.size * scaleHeightFactor).toDp
-    println("canvasWidth: $canvasWidth, canvasHeight $canvasHeight")
-    println("lastCaptureTime: ${component.lastCaptureTime}, firstCaptureTime ${component.firstCaptureTime}")
-    Column(
-        Modifier
-            .padding(16.dp)
-            .drawBehind {
-                drawAxis(
-                    firstCaptureTime = component.firstCaptureTime,
-                    lastCaptureTime = component.lastCaptureTime,
-                    scaleWidthFactor = scaleWidthFactor,
-                    height = (component.flameMap.size * scaleHeightFactor) + 40F
-                )
             }
-            .height(canvasHeight)
-            .width(canvasWidth)
-    ) {
-        for ((key, value) in component.flameMap) {
-            DrawFunctionRow(
-                level = key,
-                functions = value,
-                scaleHeightFactor = scaleHeightFactor,
-                scaleWidthFactor = scaleWidthFactor
-            )
+            Box(
+                Modifier.fillMaxSize()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(stateVertical)
+                ) {
+
+                    FlameChart(
+                        component,
+                        scaleHeightFactor = scaleHeightFactor.value,
+                        scaleWidthFactor = scaleWidthFactor.value
+                    )
+                }
+            }
         }
     }
 }
+
 
 internal fun DrawScope.drawAxis(
     firstCaptureTime: Long,
@@ -95,39 +104,15 @@ internal fun DrawScope.drawAxis(
     val totalWidth = lastCaptureTime - firstCaptureTime
     val totalScale = (totalWidth / 100) + 2
 
-    println("firstCaptureTime $firstCaptureTime, lastCaptureTime $lastCaptureTime, scaleWidthFactor $scaleWidthFactor  totalScale: $totalScale  totalWidth $totalWidth")
-
-    val textPaint = Paint().apply {
-        isAntiAlias = true
-    }
     val pathEffect = PathEffect.dashPathEffect(floatArrayOf(40f, 20f), 0f)
-
 
     repeat(totalScale.toInt()) { i ->
         drawIntoCanvas {
-            val text = "${i * 100} ms"
-            val textLine = TextLine.make(
-                text, Font(
-                    typeface = null,
-                    size = 20f,
-                )
-            )
-            val textLineWidthHalf = textLine.width / 2F
-            val textStartX = ((i * 100) * scaleWidthFactor) - textLineWidthHalf
-
             it.nativeCanvas.apply {
-
-                drawTextLine(
-                    textLine,
-                    textStartX,
-                    0F,
-                    textPaint
-                )
-
                 if (i != 0) {
                     drawLine(
-                        start = Offset(x = textStartX, y = 0f),
-                        end = Offset(x = textStartX, y = height),
+                        start = Offset(x = ((i * 100) * scaleWidthFactor), y = 0f),
+                        end = Offset(x = ((i * 100) * scaleWidthFactor), y = height),
                         color = Color.DarkGray,
                         pathEffect = pathEffect,
                         alpha = 0.5F,
@@ -135,6 +120,37 @@ internal fun DrawScope.drawAxis(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun FlameChart(component: FlameChartData, scaleHeightFactor: Float, scaleWidthFactor: Float) {
+    val canvasWidth = ((component.lastCaptureTime - component.firstCaptureTime) * scaleWidthFactor).toDp
+    val canvasHeight = (component.flameMap.size * scaleHeightFactor).toDp + 100.dp
+    println("canvasWidth: $canvasWidth, canvasHeight $canvasHeight")
+    println("lastCaptureTime: ${component.lastCaptureTime}, firstCaptureTime ${component.firstCaptureTime}")
+    Column(
+        Modifier
+            .height(canvasHeight)
+            .width(canvasWidth)
+            .drawBehind {
+                drawAxis(
+                    firstCaptureTime = component.firstCaptureTime,
+                    lastCaptureTime = component.lastCaptureTime,
+                    scaleWidthFactor = scaleWidthFactor,
+                    height = (component.flameMap.size * scaleHeightFactor)
+                )
+            }
+    ) {
+        Spacer(Modifier.height(30.dp))
+        for ((key, value) in component.flameMap) {
+            DrawFunctionRow(
+                level = key,
+                functions = value,
+                scaleHeightFactor = scaleHeightFactor,
+                scaleWidthFactor = scaleWidthFactor
+            )
         }
     }
 }
@@ -179,7 +195,7 @@ fun drawFunctionCall(
         )
         drawRect(
             topLeft = Offset(x = startX, y = startY),
-            color = Color(0xE4FF0000),
+            color = Color(0x2EFF0000),
             size = Size(width, heightFactor)
         )
         drawFunctionName(
