@@ -6,3 +6,10 @@ FlameGraph was designed to visualize the performance of backend applications in 
 
 ## Project Purpose
 This project aims to create a similar visualization tool for Android. While I could have written an adapter for Chrome's dev tool or PerfettoUI, I also wanted to explore the current state of WASM and Compose Multiplatform for some time now. This project seemed like a great opportunity to do so.
+
+## Disclaimer:
+This repository is a work in progress. The primary goal at this stage is to just make it work. It is not intended as a resource for learning KMP or Compose Multiplatform.
+
+
+## Current state:
+![Current Screenshot](screenshots/2024-08-01.png)
