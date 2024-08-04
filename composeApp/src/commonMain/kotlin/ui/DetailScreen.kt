@@ -4,6 +4,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -16,7 +17,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -30,50 +30,21 @@ import processor.TraceNode
 @Composable
 fun DetailScreen(component: FlameChartData, goBack: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(24.dp)) {
-        Text("GoBack", modifier = Modifier.clickable { goBack.invoke() })
-        Spacer(Modifier.height(60.dp))
-
         val stateVertical = rememberScrollState(0)
         val stateHorizontal = rememberScrollState(0)
-
-        val scaleWidthFactor = remember { mutableFloatStateOf(10F) }
+        val scaleWidthFactor = remember { mutableFloatStateOf(5F) }
         val scaleHeightFactor = remember { mutableFloatStateOf(50F) }
 
+        Text("GoBack", modifier = Modifier.clickable { goBack.invoke() })
+        TimeScaleScroller()
+        Spacer(Modifier.height(24.dp))
+        Column(
+            Modifier
+                .fillMaxHeight()
+                .horizontalScroll(stateHorizontal)
+        ) {
 
-        Column(Modifier.fillMaxHeight().horizontalScroll(stateHorizontal)) {
-            Box(
-                Modifier.height(50.dp)
-                    .drawBehind {
-                        val totalWidth = component.lastCaptureTime - component.firstCaptureTime
-                        val totalScale = (totalWidth/2) +2
-                        val textPaint = Paint().apply {
-                            isAntiAlias = true
-                        }
-                        repeat(totalScale.toInt()){ i ->
-                            drawIntoCanvas {
-                                val text = "${i * 100} ms"
-                                val textLine = TextLine.make(
-                                    text, Font(
-                                        typeface = null,
-                                        size = 20f,
-                                    )
-                                )
-                                val textLineWidthHalf = textLine.width / 2F
-                                val textStartX = ((i * 100) * scaleWidthFactor.value) - textLineWidthHalf
-                                it.nativeCanvas.apply {
-                                    drawTextLine(
-                                        textLine,
-                                        textStartX,
-                                        0F,
-                                        textPaint
-                                    )
-                                }
-                            }
-                        }
-                    }
-            ) {
-
-            }
+            TimeScale(component, scaleWidthFactor)
             Box(
                 Modifier.fillMaxSize()
             ) {
@@ -87,6 +58,48 @@ fun DetailScreen(component: FlameChartData, goBack: () -> Unit) {
                         component,
                         scaleHeightFactor = scaleHeightFactor.value,
                         scaleWidthFactor = scaleWidthFactor.value
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TimeScaleScroller() {
+    Column(Modifier.height(100.dp).fillMaxWidth().background(Color.Red)) {
+        Text("This is time selector")
+    }
+}
+
+@Composable
+private fun TimeScale(
+    component: FlameChartData,
+    scaleWidthFactor: MutableFloatState
+) {
+    Canvas(Modifier.height(20.dp)){
+        val totalWidth = component.lastCaptureTime - component.firstCaptureTime
+        val totalScale = (totalWidth / 2) + 2
+        val textPaint = Paint().apply {
+            isAntiAlias = true
+        }
+        repeat(totalScale.toInt()) { i ->
+            drawIntoCanvas {
+                val text = "${i * 100} ms"
+                val textLine = TextLine.make(
+                    text, Font(
+                        typeface = null,
+                        size = 20f,
+                    )
+                )
+                val textLineWidthHalf = textLine.width / 2F
+                val textStartX = ((i * 100) * scaleWidthFactor.value) - textLineWidthHalf
+                it.nativeCanvas.apply {
+                    drawTextLine(
+                        textLine,
+                        textStartX,
+                        0F,
+                        textPaint
                     )
                 }
             }
@@ -143,7 +156,6 @@ fun FlameChart(component: FlameChartData, scaleHeightFactor: Float, scaleWidthFa
                 )
             }
     ) {
-        Spacer(Modifier.height(30.dp))
         for ((key, value) in component.flameMap) {
             DrawFunctionRow(
                 level = key,
